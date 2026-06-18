@@ -7,6 +7,7 @@ import Footer from '../components/Footer';
 import WhatsAppButton from '../components/WhatsAppButton';
 import LoadingScreen from '../components/LoadingScreen'; // ← IMPORT ADICIONADO!
 import { loadContent } from '/src/utils/contentLoader';
+import { normalizeArticleMarkdown } from '/src/utils/articleFormatting';
 import '../styles/animations.css';
 
 // Função para extrair ID do YouTube
@@ -67,7 +68,7 @@ function processFeaturedVideo(videoData) {
 }
 
 function parseFrontmatter(text) {
-  const match = text.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+  const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
   if (!match) return { data: {}, content: text };
 
   const data = {};
@@ -152,7 +153,7 @@ renderer.image = (href, title, text) => {
 };
 
 marked.setOptions({
-  breaks: true,
+  breaks: false,
   gfm: true,
   headerIds: true,
   mangle: false,
@@ -339,7 +340,7 @@ export default function Post() {
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gray-50 overflow-x-hidden">
       <Header siteName={content.siteName} oab={content.oab} whatsapp={content.whatsapp} />
 
       {/* Faixa Azul */}
@@ -348,7 +349,7 @@ export default function Post() {
           <span className="text-accent font-semibold tracking-wider uppercase text-sm mb-4 inline-block">
             DOUTRINA & JURISPRUDÊNCIA
           </span>
-          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4">
+          <h1 className="text-3xl md:text-4xl lg:text-5xl font-bold mb-4 break-words">
             {post.data.title}
           </h1>
           {post.data.description && (
@@ -360,7 +361,7 @@ export default function Post() {
         </div>
       </section>
 
-      <main className="container-custom max-w-4xl px-4 py-8">
+      <main className="container-custom max-w-4xl w-full min-w-0 px-4 py-8">
         
         <Link to="/blog" className="inline-flex items-center gap-2 text-gray-500 hover:text-accent mb-6">
           <i className="fas fa-arrow-left"></i> Todos os artigos
@@ -383,9 +384,9 @@ export default function Post() {
         {/* Artigo */}
         <article 
           ref={articleRef}
-          className="prose prose-sm sm:prose-base lg:prose-lg max-w-none"
+          className="article-content"
         >
-          <div dangerouslySetInnerHTML={{ __html: marked.parse(post.content) }} />
+          <div dangerouslySetInnerHTML={{ __html: marked.parse(normalizeArticleMarkdown(post.content)) }} />
         </article>
 
         {/* Ações */}

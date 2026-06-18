@@ -5,6 +5,7 @@ import Footer from '../components/Footer';
 import WhatsAppButton from '../components/WhatsAppButton';
 import LoadingScreen from '../components/LoadingScreen'; // ← IMPORT ADICIONADO!
 import { loadContent } from "/src/utils/contentLoader";
+import { createArticleExcerpt } from "/src/utils/articleFormatting";
 import '../styles/animations.css';
 
 export default function Blog() {
@@ -46,7 +47,7 @@ export default function Blog() {
             postsData.push({
               slug,
               data,
-              content: content.substring(0, 150) + '...'
+              content: createArticleExcerpt(content)
             });
           }
         }
@@ -63,7 +64,7 @@ export default function Blog() {
   }, []);
 
   function parseFrontmatter(text) {
-    const match = text.match(/^---\n([\s\S]*?)\n---\n([\s\S]*)$/);
+    const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---\r?\n([\s\S]*)$/);
     if (!match) return { data: {}, content: text };
     const data = {};
     match[1].split('\n').forEach(line => {

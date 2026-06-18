@@ -21,6 +21,66 @@
       return (match && match[2].length === 11) ? match[2] : null;
     }
 
+    function normalizeArticleMarkdown(markdown) {
+      let standaloneBoldIndex = 0;
+      const majorHeadingPattern = /^(introdução|conclusão|a importância|a usucapião|a adjudicação|a atuação|a regularização)/i;
+
+      return (markdown || '')
+        .replace(/\r\n/g, '\n')
+        .split(/\n{2,}/)
+        .map(function(block) {
+          const text = block.trim();
+          if (!text) return '';
+
+          const isStandaloneBold =
+            text.startsWith('**') &&
+            !text.startsWith('***') &&
+            text.endsWith('**') &&
+            !text.endsWith('***');
+
+          if (isStandaloneBold) {
+            const value = text.slice(2, -2).trim();
+            const isFirstBoldBlock = standaloneBoldIndex === 0;
+            standaloneBoldIndex += 1;
+
+            if (isFirstBoldBlock && value.length > 100) {
+              return `<p class="article-deck">${value}</p>`;
+            }
+
+            if (/^por\s+/i.test(value)) {
+              return `<p class="article-byline">${value}</p>`;
+            }
+
+            if (/^lembre-se:/i.test(value)) {
+              return `> **${value}**`;
+            }
+
+            return `${majorHeadingPattern.test(value) ? '##' : '###'} ${value}`;
+          }
+
+          const compactText = text.replace(/\n+/g, ' ').trim();
+          const semicolonCount = (compactText.match(/;/g) || []).length;
+          const hasMarkdownStructure = /^(#{1,6}\s|[-*>]\s|\d+\.\s|```)/.test(compactText);
+
+          if (!hasMarkdownStructure && semicolonCount >= 2) {
+            const items = compactText
+              .split(';')
+              .map(function(item) { return item.trim(); })
+              .filter(Boolean);
+
+            if (items.length >= 3 && items.every(function(item) { return item.length <= 180; })) {
+              return items.map(function(item) {
+                return `- ${item.replace(/\.$/, '')}`;
+              }).join('\n');
+            }
+          }
+
+          return text;
+        })
+        .filter(Boolean)
+        .join('\n\n');
+    }
+
     // Usar CMS.createClass para criar o componente (React é injetado automaticamente)
     const PostPreview = CMS.createClass({
       render: function() {
@@ -74,13 +134,13 @@
           h('img', { src: image, style: { width: '100%', maxHeight: '400px', objectFit: 'cover', borderRadius: '8px', marginBottom: '30px' } }) : null;
 
         // Processar markdown
-        const contentHtml = window.marked ? window.marked.parse(body) : body;
+        const contentHtml = window.marked ? window.marked.parse(normalizeArticleMarkdown(body)) : body;
 
         // Formatar data
         const formattedDate = new Date(date).toLocaleDateString('pt-BR');
 
         // Montar componente
-        return h('div', { style: { fontFamily: 'Arial, sans-serif', maxWidth: '800px', margin: '0 auto', padding: '20px', background: 'white', boxShadow: '0 2px 10px rgba(0,0,0,0.1)' } },
+        return h('div', { className: 'preview-content', style: { maxWidth: '800px', margin: '0 auto', padding: '20px', background: 'white' } },
           
           // Header
           h('div', { style: { background: 'linear-gradient(135deg, #0a2472 0%, #1e3a8a 100%)', color: 'white', padding: '40px', textAlign: 'center', marginBottom: '30px', borderRadius: '8px' } },
@@ -116,32 +176,23 @@
 
     // Registrar estilos adicionais
     CMS.registerPreviewStyle(`
-      .preview-content h1 { font-size: 32px; margin: 20px 0 10px; color: #0a2472; }
-      .preview-content h2 { font-size: 28px; margin: 18px 0 8px; color: #1e3a8a; }
-      .preview-content h3 { font-size: 24px; margin: 16px 0 6px; }
-      .preview-content p { margin: 15px 0; }
-      .preview-content blockquote {
-        border-left: 4px solid #c9a227;
-        padding-left: 20px;
-        margin: 20px 0;
-        font-style: italic;
-        color: #555;
-        background: #f9f9f9;
-        padding: 15px 20px;
-        border-radius: 0 8px 8px 0;
-      }
-      .preview-content ul, .preview-content ol { margin: 15px 0; padding-left: 30px; }
-      .preview-content li { margin: 5px 0; }
-      .preview-content a { color: #c9a227; text-decoration: none; }
-      .preview-content a:hover { text-decoration: underline; }
-      .preview-content img {
-        max-width: 100%;
-        height: auto;
-        border-radius: 8px;
-        margin: 20px 0;
-        box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      }
-    `);
+      @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap');
+      .preview-content { color: #283746; font-family: 'Merriweather', Georgia, serif; font-size: 17px; line-height: 1.85; }
+      .preview-content h1, .preview-content h2, .preview-content h3 { color: #0a2472; font-family: 'Inter', sans-serif; line-height: 1.3; }
+      .preview-content h1 { font-size: 36px; margin: 20px 0 12px; }
+      .preview-content h2 { border-bottom: 1px solid #e8e2d9; font-size: 28px; margin: 46px 0 18px; padding-bottom: 10px; }
+      .preview-content h3 { border-left: 4px solid #d4af37; font-size: 21px; margin: 32px 0 14px; padding-left: 12px; }
+      .preview-content p { margin: 0 0 20px; }
+      .preview-content .article-deck { color: #0a2472; font-family: 'Inter', sans-serif; font-size: 22px; font-weight: 700; line-height: 1.45; }
+      .preview-content .article-byline { color: #667085; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 36px; }
+      .preview-content blockquote { background: #faf9f7; border-left: 4px solid #c9a227; color: #334155; margin: 32px 0; padding: 18px 22px; }
+      .preview-content blockquote p { margin: 0; }
+      .preview-content ul, .preview-content ol { margin: 0 0 24px; padding-left: 30px; }
+      .preview-content li { margin: 8px 0; }
+      .preview-content li::marker { color: #c49a16; font-weight: 700; }
+      .preview-content a { color: #0a2472; font-weight: 700; text-decoration-color: #d4af37; text-underline-offset: 3px; }
+      .preview-content img { max-width: 100%; height: auto; border-radius: 8px; margin: 28px auto; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+    `, { raw: true });
 
     console.log('Pré-visualização carregada com CMS.createClass!');
   </script>
