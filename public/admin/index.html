@@ -8,6 +8,49 @@
   
   <!-- Carregar marked para processar markdown -->
   <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+  <style>
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Merriweather:wght@400;700&display=swap');
+
+    /* Exibe no editor a mesma leitura usada na pagina publica. */
+    [data-slate-editor="true"] {
+      color: #283746;
+      font-family: 'Merriweather', Georgia, serif;
+      font-size: 17px;
+      line-height: 1.85;
+      overflow-wrap: anywhere;
+      word-break: normal;
+    }
+
+    [data-slate-editor="true"] p {
+      margin: 0 0 1.25rem;
+      text-align: justify;
+      text-justify: inter-word;
+      hyphens: auto;
+    }
+
+    [data-slate-editor="true"] h1,
+    [data-slate-editor="true"] h2,
+    [data-slate-editor="true"] h3,
+    [data-slate-editor="true"] h4 {
+      color: #0a2472;
+      font-family: 'Inter', Arial, sans-serif;
+      font-weight: 700;
+      line-height: 1.3;
+      text-align: left;
+    }
+
+    [data-slate-editor="true"] blockquote {
+      background: #faf9f7;
+      border-left: 4px solid #d4af37;
+      color: #334155;
+      padding: 0.75rem 1rem;
+    }
+
+    [data-slate-editor="true"] ul,
+    [data-slate-editor="true"] ol {
+      padding-left: 1.5rem;
+    }
+  </style>
 </head>
 <body>
   <script src="https://unpkg.com/decap-cms@3.10.1/dist/decap-cms.js"></script>
@@ -182,7 +225,9 @@
       .preview-content h1 { font-size: 36px; margin: 20px 0 12px; }
       .preview-content h2 { border-bottom: 1px solid #e8e2d9; font-size: 28px; margin: 46px 0 18px; padding-bottom: 10px; }
       .preview-content h3 { border-left: 4px solid #d4af37; font-size: 21px; margin: 32px 0 14px; padding-left: 12px; }
-      .preview-content p { margin: 0 0 20px; }
+      .preview-content p { margin: 0 0 20px; text-align: justify; text-justify: inter-word; hyphens: auto; }
+      .preview-content h1, .preview-content h2, .preview-content h3, .preview-content h4,
+      .preview-content .article-deck, .preview-content .article-byline { text-align: left; }
       .preview-content .article-deck { color: #0a2472; font-family: 'Inter', sans-serif; font-size: 22px; font-weight: 700; line-height: 1.45; }
       .preview-content .article-byline { color: #667085; font-family: 'Inter', sans-serif; font-size: 15px; font-weight: 600; margin-bottom: 36px; }
       .preview-content blockquote { background: #faf9f7; border-left: 4px solid #c9a227; color: #334155; margin: 32px 0; padding: 18px 22px; }
